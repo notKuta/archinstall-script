@@ -65,7 +65,7 @@ done
 printf "Wiping drive and paritioning...\n"
 
 
-yes | wipefs -a ${drive}
+wipefs --all -f ${drive}?
 sfdisk ${drive} --delete
 
 # Creates a 4 GiB boot partition and reserves the rest of the
