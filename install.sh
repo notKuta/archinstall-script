@@ -202,12 +202,12 @@ systemctl enable NetworkManager
 
 useradd -mU -g "${user}" -G gamemode,wheel "${user}"
 
+echo "${user}:${password}" | chpasswd 
+echo "root:${password}" | chpasswd
+
 END
 
-echo "$user:$password" | chpasswd --root /mnt
-echo "root:$password" | chpasswd --root /mnt
-
 # cd
-umount -R /mnt
+# umount -R /mnt
 
 printf "Script Finished!\n\nPlease reboot the system!\n"
