@@ -142,6 +142,8 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 ############# Chroot ###############
 
+# Initially attempted to put the below 2 lines within our chroot script, however, was getting
+# errors about syntax; putting it outside fixed it
 desiredHookLine="HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)"
 sed "s/^HOOKS=.*/${desiredHookLine}/" /mnt/etc/mkinitcpio.conf > /mnt/etc/tmp2.conf && mv /mnt/etc/tmp2.conf /mnt/etc/mkinitcpio.conf
 
