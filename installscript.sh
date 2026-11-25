@@ -33,8 +33,9 @@ while [ $internet_status -ne 0 ]; do
 done
 
 # Checks if time is synchronized
-
-if [ timedatectl | awk -F ':' '/^System clock synchronized/  {print $2}' == "no" ]; then
+#
+timeSync=$(timedatectl | awk -F ':' '/^System clock synchronized/  {print $2}' )
+if [ $timeSync == "no" ]; then
 	echo ERROR: time is not synchronized. Please fix this.
 	exit 1
 else
