@@ -45,7 +45,7 @@ fi
 
 lsblk
 
-echo -n Which drive would you wish to partition? for ex. `/dev/nvme0n1` or `/dev/sda`:
+echo -n Which drive would you wish to partition? for ex. /dev/nvme0n1 or /dev/sda :
 read drive
 : "${drive:?"Missing drive"}"
 
