@@ -88,9 +88,35 @@ p
 w
 EOF
 
+# Encryption
+
+printf "Initializing encryption setup now...\n"
+
+printf "WARNING: Use a sufficiently secure password. Even though the keyslot will\n" 
+printf "be wiped later, SSD wear-leveling can cause it to persist after removal for\n"
+printf "an indefinite amount of time.\n"
+
+cryptsetup luksFormat $drive
+cryptsetup open $drive root
+
+# Filesystem creation
+
+mkfs.btrfs -L arch /dev/mapper/root
+
+# Checks if drive is an NVME or Sata HDD
+
+drive_section=printf "${drive}\n" | awk -F '/' '{print $3}' | cut -c 1-4
+if [ $drive_section == "nvme" ]; then
+        mkfs.fat -F 32 -n boot ${drive}p1
+else
+        mkfs.fat -F 32 -n boot ${drive}1
+fi
+
+lsblk -f
+
 # Hostname
 
-echo -n "Enter Hostname: "
+printf "Enter Hostname: "
 read hostname
 : "${hostname:?"Missing hostname"}"
 
