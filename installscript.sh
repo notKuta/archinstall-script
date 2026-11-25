@@ -96,7 +96,7 @@ printf "Initializing encryption setup now...\n\n"
 
 printf "WARNING: Use a sufficiently secure password. Even though the keyslot will\n" 
 printf "be wiped later, SSD wear-leveling can cause it to persist after removal for\n"
-printf "an indefinite amount of time.\n"
+printf "an indefinite amount of time.\n\n"
 
 drive_section=$(printf "${drive}\n" | awk -F '/' '{print $3}' | cut -c 1-4)
 whatDrive=
@@ -109,7 +109,7 @@ else
 	partDrive="${device}1"
 fi
 
-cryptsetup luksFormat ${partDrive} 2> /dev/null
+cryptsetup luksFormat ${partDrive}
 printf "\n\nEnter previous passphrase to open the encrypted volume!\n\n"
 cryptsetup open ${partDrive} root
 
