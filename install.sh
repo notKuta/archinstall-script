@@ -163,10 +163,8 @@ echo ${hostname} > /etc/hostname
 
 ####### mkinicpio for encryption #######
 
-hookLine=$(awk '/^HOOKS/ {print $0}' /etc/mkinitcpio.conf)
 desiredHookLine="HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)"
-
-sed "s/${hookLine}/${desiredHookLine}/" /etc/mkinitcpio.conf > /etc/tmp && mv /etc/tmp /etc/mkinitcpio.conf
+sed "s/^HOOKS=.*/${desiredHookLine}/" mkinitcpio.conf > tmp && mv tmp mkinitcpio.conf
 
 mkinitcpio -P
 
