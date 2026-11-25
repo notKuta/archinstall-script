@@ -92,14 +92,26 @@ EOF
 
 # Encryption
 
-printf "Initializing encryption setup now...\n"
+printf "Initializing encryption setup now...\n\n"
 
 printf "WARNING: Use a sufficiently secure password. Even though the keyslot will\n" 
 printf "be wiped later, SSD wear-leveling can cause it to persist after removal for\n"
 printf "an indefinite amount of time.\n"
 
-cryptsetup luksFormat $drive
-cryptsetup open $drive root
+drive_section=$(printf "${drive}\n" | awk -F '/' '{print $3}' | cut -c 1-4)
+whatDrive=
+partDrive=
+if [ "${drive_section}" == "nvme" ]; then
+	whatDrive="NVME"
+	partDrive="${device}p1"
+else
+	whatDrive="HDD"
+	partDrive="${device}1"
+fi
+
+cryptsetup luksFormat ${partDrive} 2> /dev/null
+printf "\n\nEnter previous passphrase to open the encrypted volume!\n\n"
+cryptsetup open ${partDrive} root
 
 # Filesystem creation
 
@@ -107,8 +119,7 @@ mkfs.btrfs -L arch /dev/mapper/root &> /dev/null
 
 # Checks if drive is an NVME or Sata HDD then makes FAT partition
 
-drive_section=$(printf "${drive}\n" | awk -F '/' '{print $3}' | cut -c 1-4)
-if [ "${drive_section}" == "nvme" ]; then
+if [ "${whatDrive}" == "NVME" ]; then
         mkfs.fat -F 32 -n boot ${drive}p1
 else
         mkfs.fat -F 32 -n boot ${drive}1
