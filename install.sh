@@ -43,7 +43,7 @@ part_root="$(ls ${device}* | grep -E "^${device}p?2$")"
 
 wipefs --all -f ${part_boot}
 wipefs --all -f ${part_root}
-# sfdisk ${device} --delete
+sfdisk --delete ${device}
 
 ##### Partitions a 4 GiB boot partition & rest to root ######
 fdisk $drive << EOF &> /dev/null
@@ -128,9 +128,9 @@ reflector --latest 5 --protocol https --age 12 --sort rate --save /etc/pacman.d/
 CPU=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{print $1}')
 
 if [[ "${CPU}" == "AMD" ]]; then
-	pacstrap -K /mnt amd-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine
+	pacstrap -K /mnt amd-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo
 else
-	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine
+	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo
 fi
 
 ######### Configure System #########
@@ -141,7 +141,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 ############# Chroot ###############
 
-cat << EOL > /mnt/arch-chroot-install.sh
+arch-chroot -S /mnt /bin/bash << END
 #!/bin/bash
 ############ Time ###############
 
@@ -197,14 +197,14 @@ EOF
 
 systemctl enable NetworkManager
 
-###### Reboot / Exit Chroot ######
+###### USER ######
 
-exit
+useradd -m -G gamemode,wheel kuta
 
-EOL
+END
 
-chmod +x /mnt/arch-chroot-install.sh
-arch-chroot -S /mnt /mnt/arch-chroot-install.sh
+echo "$user:$password" | chpasswd --root /mnt
+echo "root:$password" | chpasswd --root /mnt
 
 # cd
 umount -R /mnt
