@@ -22,11 +22,11 @@ while [ $internet_status -ne 0 ]; do
         fi
 
         iwctl station list
-        echo -n "Choose a station: "
+        printf "Choose a station: "
         read station_name
         : "${station_name:?"Missing station input"}"
         iwctl station $station_name get-networks
-        echo -n "Choose a network: "
+        printf "Choose a network: "
         read network_name
         : "${network_name:?"Missing network input"}"
         iwctl station $station_name connect $network_name
@@ -36,31 +36,33 @@ done
 #
 timeSync=$(timedatectl | awk -F ':' '/^System clock synchronized/  {print $2}' )
 if [ $timeSync == "no" ]; then
-	echo ERROR: time is not synchronized. Please fix this.
+	printf "ERROR: time is not synchronized. Please fix this.\n"
 	exit 1
 else
-	echo Time is synchronized!
+	printf "Time is synchronized!\n"
 fi
 
 # Paritioning
 
 lsblk
 
-echo -n Which drive would you wish to partition? for ex. /dev/nvme0n1 or /dev/sda :
+printf "Which drive would you wish to partition? for ex. /dev/nvme0n1 or /dev/sda: "
 read drive
 : "${drive:?"Missing drive"}"
 
 while :; do
-	echo -n Are you sure? *ALL* data on this drive will be wiped: 
+	printf "Are you sure? *ALL* data on this drive will be wiped (y or n):  "
 	read answer
 	: "${answer:?"Missing answer"}"
 
-	if [ $answer == "yes" || $answer == "y" || $answer == "Y" || $answer == "YES"]; then
+	if [ $answer == "y" ]; then
 		break
+	else
+		continue
 	fi
 done
 
-echo Wiping drive and paritioning...
+printf "Wiping drive and paritioning...\n"
 
 sfdisk $drive --delete
 
@@ -85,8 +87,6 @@ t
 p
 w
 EOF
-
-
 
 # Hostname
 
