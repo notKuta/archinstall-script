@@ -129,9 +129,9 @@ reflector --latest 5 --protocol https --age 12 --sort rate --save /etc/pacman.d/
 CPU=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{print $1}')
 
 if [[ "${CPU}" == "AMD" ]]; then
-	pacstrap -K /mnt amd-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo
+	pacstrap -K /mnt amd-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo efibootmgr
 else
-	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo
+	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo efibootmgr
 fi
 
 ######### Configure System #########
@@ -152,7 +152,7 @@ hwclock --systohc
 
 ######### Localization ##########
 
-sed "s/\#en_US.UTF-8\ UTF-8/en_US.UTF-8\ UTF-8/g" /etc/locale.gen > /etc/tmp && mv /etc/tmp /etc/locale.gen
+sed "s/\#en_US.UTF-8\ UTF-8/en_US.UTF-8\ UTF-8/g" /etc/locale.gen > /etc/tmp.conf && mv /etc/tmp.conf /etc/locale.gen
 locale-gen
 touch /etc/locale.conf
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
@@ -164,7 +164,7 @@ echo ${hostname} > /etc/hostname
 ####### mkinicpio for encryption #######
 
 desiredHookLine="HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)"
-sed "s/^HOOKS=.*/${desiredHookLine}/" mkinitcpio.conf > tmp && mv tmp mkinitcpio.conf
+sed "s/^HOOKS=.*/${desiredHookLine}/" /etc/mkinitcpio.conf > /etc/tmp.conf && mv /etc/tmp.conf /etc/mkinitcpio.conf
 
 mkinitcpio -P
 
@@ -198,10 +198,10 @@ systemctl enable NetworkManager
 
 ###### USER ######
 
-useradd -mU -g "${user}" -G gamemode,wheel "${user}"
+useradd -mU -G gamemode,wheel "${user}"
 
-echo "${user}:${password}" | chpasswd 
-echo "root:${password}" | chpasswd
+echo ${password} | passwd ${user} --stdin
+echo ${password} | passwd root --stdin
 
 END
 
