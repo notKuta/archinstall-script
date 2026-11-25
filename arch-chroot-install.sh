@@ -61,6 +61,14 @@ efibootmgr \
 
 touch /boot/EFI/arch-limine/limine.conf
 
+#
+#
+# NEED TO GIVE LOGIC TO FIX PARTITION NUMBER
+# AT THE END IE `p2` FOR NVME AND `2` FOR HDD
+#
+#
+
+
 cat <<EOF > /boot/EFI/arch-limine/limine.conf
 timeout: 5
 
