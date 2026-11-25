@@ -199,7 +199,7 @@ systemctl enable NetworkManager
 
 ###### USER ######
 
-useradd -m -G gamemode,wheel kuta
+useradd -mU -g "${user}" -G gamemode,wheel "${user}"
 
 END
 
