@@ -205,6 +205,10 @@ useradd -mU -G gamemode,wheel "${user}"
 echo ${password} | passwd ${user} --stdin
 echo ${password} | passwd root --stdin
 
+####### SUDOERS ########
+
+echo "%wheel      ALL=(ALL:ALL) ALL" > /etc/sudoers.d/10-wheel
+
 END
 
 # cd
