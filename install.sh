@@ -1,76 +1,52 @@
 #!/bin/bash
 
+################ Gather information from the user ####################
+
+hostname=$(dialog --stdout --inputbox "Enter hostname" 0 0) || exit 1
+clear
+: ${hostname:?"hostname cannot be empty"}
+
+user=$(dialog --stdout --inputbox "Enter admin username" 0 0) || exit 1
+clear
+: ${user:?"user cannot be empty"}
+
+password=$(dialog --stdout --passwordbox "Enter admin password" 0 0) || exit 1
+clear
+: ${password:?"password cannot be empty"}
+password2=$(dialog --stdout --passwordbox "Enter admin password again" 0 0) || exit 1
+clear
+[[ "$password" == "$password2" ]] || ( echo "Passwords did not match"; exit 1; )
+
+devicelist=$(lsblk -dplnx size -o name,size | grep -Ev "boot|rpmb|loop" | tac)
+device=$(dialog --stdout --menu "Select installation disk" 0 0 0 ${devicelist}) || exit 1
+clear
+
+### Set up logging ###
+exec 1> >(tee "stdout.log")
+exec 2> >(tee "stderr.log")
+
 # Checks if internet is connected, if not, queries
 # the user to connect to a Wi-Fi network
 
-internet_status=1
-counter=0
-while [ $internet_status -ne 0 ]; do
-        ping -q -c1 ping.archlinux.org &> /dev/null
-        internet_status=$?
-
-        counter+=1
-        if [ $counter -eq 1 ]; then
-                continue
-        fi
-
-        echo Internet is offline!
-
-        if [ ! $(command -v iwctl) &> /dev/null]; then
-                echo ERROR: `iwctl` does not exist on the system.
-                exit 1
-        fi
-
-        iwctl station list
-        printf "Choose a station: "
-        read station_name
-        : "${station_name:?"Missing station input"}"
-        iwctl station $station_name get-networks
-        printf "Choose a network: "
-        read network_name
-        : "${network_name:?"Missing network input"}"
-        iwctl station $station_name connect $network_name
-done
-
-# Checks if time is synchronized
-#
+### Checks if time is synchronized ###
 timeSync=$(timedatectl | awk -F ':' '/^System clock synchronized/  {print $2}' )
 if [ $timeSync == "no" ]; then
-	printf "ERROR: time is not synchronized. Please fix this.\n"
+	printf "ERROR: time is not synchronized. Fixing now. Re-run the script.\n"\
+	timedatectl set-ntp true
 	exit 1
-else
-	printf "Time is synchronized!\n"
 fi
 
-# Paritioning
+# Simple globbing was not enough as on one device I needed to match /dev/mmcblk0p1
+# but not /dev/mmcblk0boot1 while being able to match /dev/sda1 on other devices.
+part_boot="$(ls ${device}* | grep -E "^${device}p?1$")"
+part_root="$(ls ${device}* | grep -E "^${device}p?2$")"
 
-lsblk
+wipefs --all -f ${part_boot}
+wipefs --all -f ${part_root}
+# sfdisk ${device} --delete
 
-printf "Which drive would you wish to partition? for ex. /dev/nvme0n1 or /dev/sda: "
-read drive
-: "${drive:?"Missing drive"}"
-
-while :; do
-	printf "Are you sure? *ALL* data on this drive will be wiped (y or n):  "
-	read answer
-	: "${answer:?"Missing answer"}"
-
-	if [ $answer == "y" ]; then
-		break
-	else
-		continue
-	fi
-done
-
-printf "Wiping drive and paritioning...\n"
-
-wipefs --all -f ${drive}?
-sfdisk ${drive} --delete
-
-# Creates a 4 GiB boot partition and reserves the rest of the
-# space for the root partition
-
-fdisk $drive << EOF
+##### Partitions a 4 GiB boot partition & rest to root ######
+fdisk $drive << EOF &> /dev/null
 g
 n
 1
@@ -89,7 +65,7 @@ p
 w
 EOF
 
-# Encryption
+######## Encryption ########
 
 printf "Initializing encryption setup now...\n\n"
 
@@ -97,32 +73,13 @@ printf "WARNING: Use a sufficiently secure password. Even though the keyslot wil
 printf "be wiped later, SSD wear-leveling can cause it to persist after removal for\n"
 printf "an indefinite amount of time.\n\n"
 
-drive_section=$(printf "${drive}\n" | awk -F '/' '{print $3}' | cut -c 1-4)
-whatDrive=
-partDrive=
-if [ "${drive_section}" == "nvme" ]; then
-	whatDrive="NVME"
-	partDrive="${drive}p2"
-else
-	whatDrive="HDD"
-	partDrive="${drive}2"
-fi
+cryptsetup luksFormat ${part_root}
+cryptsetup open ${part_root} root
 
-cryptsetup luksFormat ${partDrive}
-# printf "\n\nEnter previous passphrase to open the encrypted volume!\n\n"
-cryptsetup open ${partDrive} root
-
-# Filesystem creation
+######### Filesystem creation ##########
 
 mkfs.btrfs -L arch /dev/mapper/root &> /dev/null
-
-# Checks if drive is an NVME or Sata HDD then makes FAT partition
-
-if [ "${whatDrive}" == "NVME" ]; then
-        mkfs.fat -F 32 -n boot ${drive}p1
-else
-        mkfs.fat -F 32 -n boot ${drive}1
-fi
+mkfs.fat -F 32 -n boot ${part_boot} &> /dev/null
 
 sleep 3
 
@@ -158,51 +115,98 @@ mount -o compress=zstd,subvol=/@swap --mkdir /dev/mapper/root /mnt/.swap
 mount -o compress=zstd,subvol=/@portables --mkdir /dev/mapper/root /mnt/var/lib/portables
 mount -o compress=zstd,subvol=/@machines --mkdir /dev/mapper/root /mnt/var/lib/machines
 
-if [ "${whatDrive}" == "NVME" ]; then
-        mount --mkdir ${drive}p1 /mnt/boot
-else
-        mount --mkdir ${drive}1 /mnt/boot
-fi
+mount --mkdir ${part_boot} /mnt/boot
 
-# Reflector / Mirrors
+######### Reflector / Mirrors ###########
 
 reflector --latest 5 --protocol https --age 12 --sort rate --save /etc/pacman.d/mirrorlist
 
-# Pacstrap / Packages
+######### Pacstrap / Packages ###########
 
-## Checks if CPU is Intel or AMD
+###### Checks if CPU is Intel or AMD ######
 
-whatCPU=$(lscpu | awk -F ':' '/^Model name/ {print $2}' | awk '{print $1}')
+CPU=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{print $1}')
 
-if [ "${whatCPU}" == "AMD" ]; then
+if [[ "${CPU}" == "AMD" ]]; then
 	pacstrap -K /mnt amd-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine
 else
 	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine
 fi
 
-# Configure System
+######### Configure System #########
 
-## Fstab
+############# Fstab ################
 
 genfstab -U /mnt >> /mnt/etc/fstab
 
-cat /mnt/etc/fstab
+############# Chroot ###############
 
-printf "Does this look correct? (y or n): "
-read answer2
+cat << EOL > /mnt/arch-chroot-install.sh
+#!/bin/bash
+############ Time ###############
 
-if [ "${answer2}" == "n" ]; then
-	vim /mnt/etc/fstab
-fi
+ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
-## Chroot
+hwclock --systohc
 
-cp arch-chroot-install.sh /mnt/root/arch-chroot-install.sh
-chmod a+x /mnt/root/arch-chroot-install.sh
+######### Localization ##########
 
-arch-chroot -S /mnt /mnt/root/arch-chroot-install.sh
+sed "s/\#en_US.UTF-8\ UTF-8/en_US.UTF-8\ UTF-8/g" /etc/locale.gen > /etc/tmp && mv /etc/tmp /etc/locale.gen
+locale-gen
+touch /etc/locale.conf
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
+############# hostname ##############
+
+echo ${hostname} > /etc/hostname
+
+####### mkinicpio for encryption #######
+
+hookLine=$(awk '/^HOOKS/ {print $0}' /etc/mkinitcpio.conf)
+desiredHookLine="HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)"
+
+sed "s/${hookLine}/${desiredHookLine}/" /etc/mkinitcpio.conf > /etc/tmp && mv /etc/tmp /etc/mkinitcpio.conf
+
+mkinitcpio -P
+
+####### Bootloader ########
+
+mkdir -p /boot/EFI/arch-limine
+cp /usr/share/limine/BOOTX64.EFI /boot/EFI/arch-limine/
+
+efibootmgr \
+      --create \
+      --disk ${device} \
+      --part 1 \
+      --label "Arch Linux Limine Boot Loader" \
+      --loader '\EFI\arch-limine\BOOTX64.EFI' \
+      --unicode
+
+touch /boot/EFI/arch-limine/limine.conf
+cat <<EOF > /boot/EFI/arch-limine/limine.conf
+timeout: 5
+
+/Arch Linux
+    protocol: linux
+    path: boot():/vmlinuz-linux
+    cmdline: rd.luks.name=$(blkid -s UUID -o value "${part_root}")=root root=/dev/mapper/root rw rootflags=subvol=/@
+    module_path: boot():/initramfs-linux.img
+EOF
+
+###### Systemd Units ######
+
+systemctl enable NetworkManager
+
+###### Reboot / Exit Chroot ######
+
+exit
+
+EOL
+
+chmod +x /mnt/arch-chroot-install.sh
+arch-chroot -S /mnt /mnt/arch-chroot-install.sh
 
 # cd
-# umount -R /mnt
+umount -R /mnt
 
 printf "Script Finished!\n\nPlease reboot the system!\n"
