@@ -198,6 +198,7 @@ fi
 ## Chroot
 
 cp arch-chroot-install.sh /mnt/root/arch-chroot-install.sh
+chmod +x /mnt/root/arch-chroot-install.sh
 
 arch-chroot -S /mnt /mnt/root/arch-chroot-install.sh
 
