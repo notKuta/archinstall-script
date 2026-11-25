@@ -260,25 +260,9 @@ timeout: 5
 /Arch Linux
     protocol: linux
     path: boot():/vmlinuz-linux
-    cmdline: root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx rw
+    cmdline: rd.luks.name=$(blkid -s UUID -o value "${drive}"p2)=root root=/dev/mapper/root rw rootflags=subvol=/@
     module_path: boot():/initramfs-linux.img
 EOF
-
-#
-# EVERYTHING BETWEEN THE DASHED LINES MUST BE CHECKED IN
-# A TEST FILE FOR CORRECTNESS; IT CURRENTLY DOES NOT WORK
-#
-
-# ----------------------------------------------------------------------
- 
-uuidLine=$( lsblk -f | awk '/${device}p2/ {print $0}' )
-
-cmdLineScript=$(awk '/^cmdline/ {print $0}' /boot/EFI/arch-limine/limine.conf )
-desiredCmdLineScript="rd.luks.name=${uuidLine}=root root=/dev/mapper/root rw rootflags=subvol=/@"
-
-sed "s/${cmdLineScript}/${desiredCmdLineScript}/" /boot/EFI/arch-limine/limine.conf > /boot/EFI/arch-limine/tmp && mv /boot/EFI/arch-limine/tmp /boot/EFI/arch-limine/limine.conf 
-
-# ----------------------------------------------------------------------
 
 # Systemd Units
 
@@ -289,4 +273,5 @@ systemctl enable NetworkManager
 exit
 cd
 umount -R /mnt
-reboot
+
+printf "Script Finished!\n\nPlease reboot the system!\n"
