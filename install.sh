@@ -152,7 +152,7 @@ hwclock --systohc
 
 ######### Localization ##########
 
-sed "s/\#en_US.UTF-8\ UTF-8/en_US.UTF-8\ UTF-8/g" /etc/locale.gen > /etc/tmp.conf && mv /etc/tmp.conf /etc/locale.gen
+sed "s/\#en_US.UTF-8\ UTF-8/en_US.UTF-8\ UTF-8/g" /etc/locale.gen > /etc/tmp1.conf && mv /etc/tmp1.conf /etc/locale.gen
 locale-gen
 touch /etc/locale.conf
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
@@ -164,7 +164,7 @@ echo ${hostname} > /etc/hostname
 ####### mkinicpio for encryption #######
 
 desiredHookLine="HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)"
-sed "s/^HOOKS=.*/${desiredHookLine}/" /etc/mkinitcpio.conf > /etc/tmp.conf && mv /etc/tmp.conf /etc/mkinitcpio.conf
+sed "s/^HOOKS=.*/${desiredHookLine}/" /etc/mkinitcpio.conf > /etc/tmp2.conf && mv /etc/tmp2.conf /etc/mkinitcpio.conf
 
 mkinitcpio -P
 
