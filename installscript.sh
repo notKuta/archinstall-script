@@ -103,14 +103,14 @@ whatDrive=
 partDrive=
 if [ "${drive_section}" == "nvme" ]; then
 	whatDrive="NVME"
-	partDrive="${device}p1"
+	partDrive="${device}p2"
 else
 	whatDrive="HDD"
-	partDrive="${device}1"
+	partDrive="${device}2"
 fi
 
 cryptsetup luksFormat ${partDrive}
-printf "\n\nEnter previous passphrase to open the encrypted volume!\n\n"
+# printf "\n\nEnter previous passphrase to open the encrypted volume!\n\n"
 cryptsetup open ${partDrive} root
 
 # Filesystem creation
