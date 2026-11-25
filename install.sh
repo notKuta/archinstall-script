@@ -36,17 +36,13 @@ if [ $timeSync == "no" ]; then
 	exit 1
 fi
 
-# Simple globbing was not enough as on one device I needed to match /dev/mmcblk0p1
-# but not /dev/mmcblk0boot1 while being able to match /dev/sda1 on other devices.
-part_boot="$(ls ${device}* | grep -E "^${device}p?1$")"
-part_root="$(ls ${device}* | grep -E "^${device}p?2$")"
-
-wipefs --all -f ${part_boot}
-wipefs --all -f ${part_root}
+# wipefs --all -f ${part_boot}
+# wipefs --all -f ${part_root}
+wipefs --all -f ${device}
 sfdisk --delete ${device}
 
 ##### Partitions a 4 GiB boot partition & rest to root ######
-fdisk $drive << EOF &> /dev/null
+fdisk ${device} << EOF &> /dev/null
 g
 n
 1
@@ -64,6 +60,11 @@ t
 p
 w
 EOF
+
+# Simple globbing was not enough as on one device I needed to match /dev/mmcblk0p1
+# but not /dev/mmcblk0boot1 while being able to match /dev/sda1 on other devices.
+part_boot="$(ls ${device}* | grep -E "^${device}p?1$")"
+part_root="$(ls ${device}* | grep -E "^${device}p?2$")"
 
 ######## Encryption ########
 
