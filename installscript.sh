@@ -64,7 +64,6 @@ done
 
 printf "Wiping drive and paritioning...\n"
 
-
 wipefs --all -f ${drive}?
 sfdisk ${drive} --delete
 
@@ -103,10 +102,10 @@ whatDrive=
 partDrive=
 if [ "${drive_section}" == "nvme" ]; then
 	whatDrive="NVME"
-	partDrive="${device}p2"
+	partDrive="${drive}p2"
 else
 	whatDrive="HDD"
-	partDrive="${device}2"
+	partDrive="${drive}2"
 fi
 
 cryptsetup luksFormat ${partDrive}
