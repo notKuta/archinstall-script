@@ -206,6 +206,6 @@ echo ${password} | passwd root --stdin
 END
 
 # cd
-# umount -R /mnt
+umount -R /mnt
 
 printf "Script Finished!\n\nPlease reboot the system!\n"
