@@ -142,6 +142,9 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 ############# Chroot ###############
 
+desiredHookLine="HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)"
+sed "s/^HOOKS=.*/${desiredHookLine}/" /mnt/etc/mkinitcpio.conf > /mnt/etc/tmp2.conf && mv /mnt/etc/tmp2.conf /mnt/etc/mkinitcpio.conf
+
 arch-chroot -S /mnt /bin/bash << END
 #!/bin/bash
 ############ Time ###############
@@ -162,9 +165,6 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 echo ${hostname} > /etc/hostname
 
 ####### mkinicpio for encryption #######
-
-desiredHookLine="HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)"
-sed "s/^HOOKS=.*/${desiredHookLine}/" /etc/mkinitcpio.conf > /etc/tmp2.conf && mv /etc/tmp2.conf /etc/mkinitcpio.conf
 
 mkinitcpio -P
 
