@@ -101,12 +101,12 @@ cryptsetup open $drive root
 
 # Filesystem creation
 
-mkfs.btrfs -L arch /dev/mapper/root
+mkfs.btrfs -L arch /dev/mapper/root &> /dev/null
 
-# Checks if drive is an NVME or Sata HDD
+# Checks if drive is an NVME or Sata HDD then makes FAT partition
 
-drive_section=printf "${drive}\n" | awk -F '/' '{print $3}' | cut -c 1-4
-if [ $drive_section == "nvme" ]; then
+drive_section=$(printf "${drive}\n" | awk -F '/' '{print $3}' | cut -c 1-4)
+if [ "${drive_section}" == "nvme" ]; then
         mkfs.fat -F 32 -n boot ${drive}p1
 else
         mkfs.fat -F 32 -n boot ${drive}1
