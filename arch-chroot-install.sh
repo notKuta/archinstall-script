@@ -2,6 +2,12 @@
 
 ## Time
 
+lsblk -f
+
+printf "Which drive was chosen for partition beforehand? for ex. /dev/nvme0n1 or /dev/sda: "
+read drive
+: "${drive:?"Missing drive"}"
+
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 hwclock --systohc

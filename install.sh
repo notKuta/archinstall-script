@@ -198,11 +198,11 @@ fi
 ## Chroot
 
 cp arch-chroot-install.sh /mnt/root/arch-chroot-install.sh
-chmod +x /mnt/root/arch-chroot-install.sh
+chmod a+x /mnt/root/arch-chroot-install.sh
 
 arch-chroot -S /mnt /mnt/root/arch-chroot-install.sh
 
-cd
-umount -R /mnt
+# cd
+# umount -R /mnt
 
 printf "Script Finished!\n\nPlease reboot the system!\n"
