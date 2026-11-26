@@ -145,11 +145,11 @@ clear
 ############# Fstab ################
 
 genfstab -U /mnt >> /mnt/etc/fstab
-clear
 
 cat /mnt/etc/fstab
 
 read -p "Press Enter to continue IF everything looks good..." </dev/tty
+clear
 
 ############# Chroot ###############
 
@@ -228,7 +228,9 @@ echo "%wheel      ALL=(ALL:ALL) ALL" > /etc/sudoers.d/10-wheel
 
 END
 
+clear
+
 # cd
 umount -R /mnt
 
-printf "\nScript Finished!\n\nPlease reboot the system!\n"
+printf "\nScript Finished!\n\nPlease reboot the system!\n\n"
