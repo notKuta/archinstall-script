@@ -214,20 +214,13 @@ echo "%wheel      ALL=(ALL:ALL) ALL" > /etc/sudoers.d/10-wheel
 printf "Generating recovery key for LUKS volume...\n\n"
 systemd-cryptenroll ${part_root} --recovery-key
 
-while :;do
-    printf "Make sure to store your recovery key in a secure location.\n"
-    printf "This is what you will use if your TPM device cannot authenticate\n"
-    printf "properly e.g. if one of the PCR policies gets triggered. If\n"
-    printf "you do not store these, then you will be locked out of your computer.\n\n"
 
-    printf "Enter 'OKAY' once you've written it down: "
-    read tpmAnswer
-    : ${tpmAnswer:?"answer cannot be empty"}
+printf "Make sure to store your recovery key in a secure location.\n"
+printf "This is what you will use if your TPM device cannot authenticate\n"
+printf "properly e.g. if one of the PCR policies gets triggered. If\n"
+printf "you do not store these, then you will be locked out of your computer.\n\n"
 
-    if [ "${tpmAnswer}" == "OKAY" ]; then
-        break
-    fi
-done
+printf '%s' "Press any key to continue AFTER you've written it down..."; IFS= read -r <"/dev/tty"
 
 systemd-cryptenroll ${part_root}
 
