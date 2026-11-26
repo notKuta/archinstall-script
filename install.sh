@@ -209,6 +209,34 @@ echo ${password} | passwd root --stdin
 
 echo "%wheel      ALL=(ALL:ALL) ALL" > /etc/sudoers.d/10-wheel
 
+####### TPM ENCRYPTION #########
+
+printf "Generating recovery key for LUKS volume...\n\n"
+systemd-cryptenroll ${part_root} --recovery-key
+
+while :;do
+    printf "Make sure to store your recovery key in a secure location.\n"
+    printf "This is what you will use if your TPM device cannot authenticate\n"
+    printf "properly e.g. if one of the PCR policies gets triggered. If\n"
+    printf "you do not store these, then you will be locked out of your computer.\n\n"
+
+    printf "Have you written it down (y or n): "
+    read tpmAnswer
+
+    if [ "${tpmAnswer}" == "y" ]; then
+        break
+    fi
+done
+
+systemd-cryptenroll ${part_root}
+
+printf "Which keyslots would you like to wipe before enrolling TPM?\n"
+printf "Enter the keyslot number ie '1', '2' etc. OR 'empty' if you\n"
+printf "do not want to wipe a keyslot: "
+read keyslotAnswer
+
+systemd-cryptenroll ${part_root} --wipe-slot=${keyslotAnswer} --tpm2-device=auto --tpm2-pcrs=4+12+15:sha256=0000000000000000000000000000000000000000000000000000000000000000
+
 END
 
 # cd
