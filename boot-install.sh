@@ -88,7 +88,7 @@ clear
 
 lsblk
 
-printf '%s' "Press any key to continue AFTER you've confirmed it looks good..."; IFS= read -r <"/dev/tty"
+read -p "Press Enter to continue IF everything looks good..." </dev/tty
 
 # BTRFS-specific section
 
@@ -147,6 +147,11 @@ clear
 ############# Fstab ################
 
 genfstab -U /mnt >> /mnt/etc/fstab
+clear
+
+cat /mnt/etc/fstab
+
+read -p "Press Enter to continue IF everything looks good..." </dev/tty
 
 ############# Chroot ###############
 
