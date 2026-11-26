@@ -66,8 +66,6 @@ EOF
 part_boot="$(ls ${device}* | grep -E "^${device}p?1$")"
 part_root="$(ls ${device}* | grep -E "^${device}p?2$")"
 
-echo "${part_root}" > /root/partition-root.txt
-
 ######## Encryption ########
 
 printf "Initializing encryption setup now...\n\n"
@@ -162,6 +160,12 @@ sed "s/^HOOKS=.*/${desiredHookLine}/" /mnt/etc/mkinitcpio.conf > /mnt/etc/tmp2.c
 
 arch-chroot -S /mnt /bin/bash << END
 #!/bin/bash
+
+# Sends root partition information so we may read it
+# during our post-installation script
+
+echo "${part_root}" > /root/partition-root.txt
+
 ############ Time ###############
 
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
@@ -227,4 +231,4 @@ END
 # cd
 umount -R /mnt
 
-printf "Script Finished!\n\nPlease reboot the system!\n"
+printf "\nScript Finished!\n\nPlease reboot the system!\n"
