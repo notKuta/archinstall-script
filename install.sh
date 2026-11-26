@@ -222,6 +222,7 @@ while :;do
 
     printf "Have you written it down (y or n): "
     read tpmAnswer
+    : ${tpmAnswer:?"answer cannot be empty"}
 
     if [ "${tpmAnswer}" == "y" ]; then
         break
@@ -234,6 +235,7 @@ printf "Which keyslots would you like to wipe before enrolling TPM?\n"
 printf "Enter the keyslot number ie '1', '2' etc. OR 'empty' if you\n"
 printf "do not want to wipe a keyslot: "
 read keyslotAnswer
+: ${keyslotAnswer:?"answer cannot be empty"}
 
 systemd-cryptenroll ${part_root} --wipe-slot=${keyslotAnswer} --tpm2-device=auto --tpm2-pcrs=4+12+15:sha256=0000000000000000000000000000000000000000000000000000000000000000
 
