@@ -82,9 +82,11 @@ cryptsetup open ${part_root} root
 mkfs.btrfs -L arch /dev/mapper/root &> /dev/null
 mkfs.fat -F 32 -n boot ${part_boot} &> /dev/null
 
-sleep 3
+clear
 
-lsblk -f
+lsblk
+
+printf '%s' "Press any key to continue AFTER you've confirmed it looks good..."; IFS= read -r <"/dev/tty"
 
 # BTRFS-specific section
 
@@ -101,6 +103,8 @@ btrfs subvolume create /mnt/@snapshots
 btrfs subvolume create /mnt/@swap
 btrfs subvolume create /mnt/@portables
 btrfs subvolume create /mnt/@machines
+
+clear
 
 umount /mnt/
 
@@ -133,6 +137,8 @@ if [[ "${CPU}" == "AMD" ]]; then
 else
 	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo efibootmgr stow fastfetch
 fi
+
+clear
 
 ######### Configure System #########
 
