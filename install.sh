@@ -220,11 +220,11 @@ while :;do
     printf "properly e.g. if one of the PCR policies gets triggered. If\n"
     printf "you do not store these, then you will be locked out of your computer.\n\n"
 
-    printf "Have you written it down (y or n): "
+    printf "Enter 'OKAY' once you've written it down: "
     read tpmAnswer
     : ${tpmAnswer:?"answer cannot be empty"}
 
-    if [ "${tpmAnswer}" == "y" ]; then
+    if [ "${tpmAnswer}" == "OKAY" ]; then
         break
     fi
 done
