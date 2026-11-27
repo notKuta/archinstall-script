@@ -185,7 +185,7 @@ echo ${hostname} > /etc/hostname
 
 ####### mkinicpio for encryption #######
 
-mkinitcpio -P
+mkinitcpio -P &> /dev/null
 
 ####### Bootloader ########
 
@@ -213,7 +213,7 @@ EOF
 
 ###### Systemd Units ######
 
-systemctl enable NetworkManager
+systemctl enable NetworkManager &> /dev/null
 
 ###### USER ######
 
