@@ -133,9 +133,9 @@ reflector --latest 5 --protocol https --age 12 --sort rate --save /etc/pacman.d/
 CPU=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{print $1}')
 
 if [[ "${CPU}" == "AMD" ]]; then
-	pacstrap -K /mnt amd-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo efibootmgr stow fastfetch
+	pacstrap -K /mnt amd-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo efibootmgr stow fastfetch openssh
 else
-	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo efibootmgr stow fastfetch
+	pacstrap -K /mnt intel-ucode base linux linux-firmware btrfs-progs dosfstools networkmanager nano neovim man-db man-pages texinfo tealdeer git limine gamemode sudo efibootmgr stow fastfetch openssh
 fi
 
 clear
