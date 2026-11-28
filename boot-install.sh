@@ -30,7 +30,7 @@ exec 2> >(tee "stderr.log")
 
 ### Checks if time is synchronized ###
 timeSync=$(timedatectl | awk -F ':' '/^System clock synchronized/  {print $2}' )
-if [ $timeSync == "no" ]; then
+if [ "${timeSync}" == "no" ]; then
 	printf "ERROR: time is not synchronized. Fixing now. Re-run the script.\n"\
 	timedatectl set-ntp true
 	exit 1
