@@ -214,6 +214,7 @@ EOF
 ###### Systemd Units ######
 
 systemctl enable NetworkManager &> /dev/null
+systemctl enable systemd-timesyncd &> /dev/null
 
 ###### USER ######
 
